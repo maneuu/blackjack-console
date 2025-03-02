@@ -22,7 +22,7 @@ blackjack-console/
 1. **Clone o repositório:**
 
    ```bash
-   git clone https://github.com/seu-usuario/blackjack-console.git
+   git clone https://github.com/maneuu/blackjack-console.git
    ```
 
 2. **Navegue até a pasta do projeto:**
