@@ -4,7 +4,7 @@ from art import logo
 from random import choice
 
 def clear_screen():
-    """Limpa o terminal, compatível com Windows e Unix."""
+    """Limpa o terminal de forma compatível."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def deal_card():
@@ -12,105 +12,110 @@ def deal_card():
     return choice([11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10])
 
 def calculate_score(cards):
-    """
-    Calcula a pontuação total de uma mão.
-    
-    Ajusta o Ás (11) para 1 se a pontuação ultrapassar 21.
-    Retorna 0 se a mão for um Blackjack (dois cartões somando 21).
-    """
+    """Calcula a pontuação com tratamento para Ases."""
     score = sum(cards)
     if score == 21 and len(cards) == 2:
         return 0  # Blackjack
-    # Ajusta o valor do Ás se necessário
     if 11 in cards and score > 21:
-        cards[cards.index(11)] = 1  # Substitui apenas a primeira ocorrência
+        cards[cards.index(11)] = 1
         score = sum(cards)
     return score
 
-def animate_message(message, delay=1.0):
-    """
-    Exibe uma mensagem com efeito de animação.
-    
-    A mensagem é impressa caractere por caractere.
-    """
+def animate_message(message, delay=0.4):
+    """Exibe uma mensagem com efeito de animação mais fluida."""
     for char in message:
         print(char, end='', flush=True)
         time.sleep(delay / len(message))
-    print()  # Pula linha após a mensagem
+    print()
 
 def play_game():
-    # Limpa a tela e exibe o logo com uma mensagem de boas-vindas animada
+    """Executa uma partida completa de Blackjack."""
     clear_screen()
     print(logo)
-    animate_message("Bem-vindo ao Blackjack! Vamos começar a diversão...", delay=1.5)
+    print("\n" + "=" * 40 + "\n")
     
-    # Distribui as cartas iniciais para o jogador e o computador
     user_cards = [deal_card(), deal_card()]
     dealer_cards = [deal_card()]
-    
-    game_over = False
-    while not game_over:
+    user_score = 0
+
+    while True:
         user_score = calculate_score(user_cards)
         dealer_score = calculate_score(dealer_cards)
         
-        print(f"\nSuas cartas: {user_cards}, pontuação atual: {user_score}")
-        print(f"Carta visível do computador: {dealer_cards[0]}")
-        
-        # Verifica se o jogo deve encerrar
+        animate_message(f"▶ Suas cartas: {user_cards} | Pontuação: {user_score}")
+        animate_message(f"▼ Carta visível do computador: {dealer_cards[0]}\n")
+
         if user_score == 0:
-            animate_message("Você conseguiu um Blackjack!")
-            game_over = True
-        elif user_score > 21:
-            animate_message("Ops! Você estourou!")
-            game_over = True
+            animate_message("★ BLACKJACK! Você ganhou automaticamente! ★", 0.8)
+            break
+        
+        if user_score > 21:
+            break
+            
+        escolha = input("▼ Pressione Enter para mais uma carta ou qualquer tecla para parar: ")
+        if escolha == "":
+            user_cards.append(deal_card())
+            animate_message("▼ Adicionando nova carta...", 0.3)
         else:
-            # Pergunta se o jogador deseja outra carta
-            escolha = input("Deseja mais uma carta? (y para SIM, n para NÃO): ").lower()
-            if escolha == 'y':
-                animate_message("Pedindo mais uma carta...")
-                time.sleep(0.5)
-                user_cards.append(deal_card())
-            else:
-                game_over = True
-    
-    # Se o jogador não estourou, o computador compra cartas até alcançar 17 pontos ou mais
-    if calculate_score(user_cards) <= 21:
-        while calculate_score(dealer_cards) != 0 and calculate_score(dealer_cards) < 17:
-            animate_message("O computador está comprando cartas...")
-            time.sleep(0.5)
+            break
+
+    # Lógica do dealer
+    if user_score <= 21:
+        while calculate_score(dealer_cards) < 17 and calculate_score(dealer_cards) != 0:
+            animate_message("▼ Computador está comprando cartas...", 0.3)
             dealer_cards.append(deal_card())
-    
+
+    # Resultado final
     user_score = calculate_score(user_cards)
     dealer_score = calculate_score(dealer_cards)
     
-    print("\n===== Resultado Final =====")
-    print(f"Suas cartas: {user_cards}, pontuação final: {user_score}")
-    
-    # Se o jogador estourou, não exibe as cartas do computador
-    if user_score > 21:
-        animate_message("Você estourou! Você perdeu 😭")
-    else:
-        print(f"Cartas do computador: {dealer_cards}, pontuação final: {dealer_score}")
-        if dealer_score > 21:
-            animate_message("O computador estourou! Você venceu 😃")
-        elif dealer_score == user_score:
-            animate_message("Empate!")
-        elif dealer_score == 0:
-            animate_message("O computador tem Blackjack! Você perdeu 😭")
-        elif user_score == 0:
-            animate_message("Você tem Blackjack! Você venceu 😃")
-        elif user_score > dealer_score:
-            animate_message("Você venceu! Parabéns 😃")
-        else:
-            animate_message("Você perdeu! Tente novamente 😭")
-    
-    # Pausa para o jogador ver o resultado antes de limpar a tela
-    input("\nPressione Enter para continuar...")
+    print("\n" + "=" * 40)
+    animate_message(f"▶ Suas cartas: {user_cards} | Pontuação Final: {user_score}")
+    animate_message(f"▼ Cartas do Computador: {dealer_cards} | Pontuação Final: {dealer_score}\n")
 
-# Loop principal do jogo com limpeza do terminal a cada nova partida
+    # Determinar resultado
+    if user_score > 21:
+        result = 'dealer'
+        animate_message("✖ Você estourou! Derrota!", 0.6)
+    elif dealer_score > 21 or user_score == 0:
+        result = 'user'
+        animate_message("✔ Vitória! Você venceu!", 0.6)
+    elif dealer_score == 0 or dealer_score > user_score:
+        result = 'dealer'
+        animate_message("✖ O computador venceu!", 0.6)
+    elif user_score == dealer_score:
+        result = 'empate'
+        animate_message("➖ Empate!", 0.6)
+    else:
+        result = 'user'
+        animate_message("✔ Você tem a maior pontuação!", 0.6)
+
+    input("\n▼ Pressione Enter para continuar...")
+    return result
+
+# Configuração inicial
+clear_screen()
+print(logo)
+animate_message("★ Bem-vindo ao Blackjack! ★", 0.8)
+
+# Contadores de vitórias
+user_wins = 0
+dealer_wins = 0
+
+# Loop principal
 while True:
-    if input("Você deseja jogar uma partida de Blackjack? (y para SIM, n para NÃO): ").lower() != 'y':
-        print("Obrigado por jogar! Até a próxima!")
+    user_choice = input("\n▼ Pressione Enter para jogar ou qualquer tecla para sair: ")
+    if user_choice != "":
+        clear_screen()
+        animate_message(f"\n★ Placar Final ★\nJogador: {user_wins}\nComputador: {dealer_wins}")
+        animate_message("\nObrigado por jogar! Até a próxima!\n")
         break
-    clear_screen()
-    play_game()
+    
+    result = play_game()
+    
+    if result == 'user':
+        user_wins += 1
+    elif result == 'dealer':
+        dealer_wins += 1
+        
+    print(f"\n★ Placar Atual ★\nJogador: {user_wins}\nComputador: {dealer_wins}\n")
